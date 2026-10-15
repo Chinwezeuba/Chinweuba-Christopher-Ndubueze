@@ -1,0 +1,224 @@
+{
+  "entities": {
+    "UserProfile": {
+      "title": "UserProfile",
+      "description": "User profile with language learning settings, streak status, XP, and badges",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Firebase Auth user ID",
+          "maxLength": 128
+        },
+        "name": {
+          "type": "string",
+          "description": "Display name of the learner",
+          "maxLength": 100
+        },
+        "email": {
+          "type": "string",
+          "description": "User email address",
+          "maxLength": 150
+        },
+        "role": {
+          "type": "string",
+          "description": "User role in the app",
+          "enum": ["learner", "parent", "educator", "admin"]
+        },
+        "ageGroup": {
+          "type": "string",
+          "description": "Target age group persona",
+          "enum": ["child_3_5", "child_6_12", "teen_13_17", "adult_18_plus"]
+        },
+        "targetLanguage": {
+          "type": "string",
+          "description": "Language being learned",
+          "maxLength": 10
+        },
+        "nativeLanguage": {
+          "type": "string",
+          "description": "Native or bridge language",
+          "maxLength": 10
+        },
+        "currentCefr": {
+          "type": "string",
+          "description": "CEFR proficiency level",
+          "enum": ["A1", "A2", "B1", "B2", "C1", "C2"]
+        },
+        "learningGoal": {
+          "type": "string",
+          "description": "Primary goal for learning",
+          "maxLength": 300
+        },
+        "dailyGoalMinutes": {
+          "type": "number",
+          "description": "Target daily study minutes"
+        },
+        "dailyGoalXp": {
+          "type": "number",
+          "description": "Target daily XP goal"
+        },
+        "dailyXpEarnedToday": {
+          "type": "number",
+          "description": "XP points earned today towards daily goal"
+        },
+        "dailyXpDate": {
+          "type": "string",
+          "description": "Date string (YYYY-MM-DD) for daily XP tracking",
+          "maxLength": 30
+        },
+        "streakDays": {
+          "type": "number",
+          "description": "Current consecutive streak days"
+        },
+        "bestStreak": {
+          "type": "number",
+          "description": "All-time highest streak count"
+        },
+        "lastActiveDate": {
+          "type": "string",
+          "description": "ISO format date string of last active study day (YYYY-MM-DD)",
+          "maxLength": 30
+        },
+        "totalXp": {
+          "type": "number",
+          "description": "Total mastery points accumulated"
+        },
+        "avatar": {
+          "type": "string",
+          "description": "URL to learner avatar image",
+          "maxLength": 500
+        },
+        "perfectLessonsCount": {
+          "type": "number",
+          "description": "Count of lessons completed with zero mistakes"
+        },
+        "totalWordsLearned": {
+          "type": "number",
+          "description": "Count of words mastered in SRS"
+        },
+        "roleplayConversationsCount": {
+          "type": "number",
+          "description": "Count of completed AI Tutor conversations"
+        },
+        "voiceRecordingsCount": {
+          "type": "number",
+          "description": "Count of pronunciation lab recordings"
+        },
+        "dailyTimeSpentTodayMinutes": {
+          "type": "number",
+          "description": "Minutes studied today"
+        },
+        "voiceEnabled": {
+          "type": "boolean",
+          "description": "Whether voice features are enabled"
+        },
+        "slowAudioPreference": {
+          "type": "boolean",
+          "description": "Whether learner prefers slow audio playback by default"
+        },
+        "createdAt": {
+          "type": "string",
+          "description": "Document creation timestamp",
+          "format": "date-time"
+        },
+        "updatedAt": {
+          "type": "string",
+          "description": "Document last update timestamp",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "id",
+        "name",
+        "email",
+        "role",
+        "ageGroup",
+        "targetLanguage",
+        "currentCefr",
+        "dailyGoalMinutes",
+        "streakDays",
+        "totalXp"
+      ]
+    },
+    "UserSrsCard": {
+      "title": "UserSrsCard",
+      "description": "Spaced repetition flashcard stored for a learner",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique card identifier",
+          "maxLength": 128
+        },
+        "userId": {
+          "type": "string",
+          "description": "Owner user ID",
+          "maxLength": 128
+        },
+        "languageId": {
+          "type": "string",
+          "description": "Target language ID",
+          "maxLength": 10
+        },
+        "term": {
+          "type": "string",
+          "description": "Target vocabulary term or phrase",
+          "maxLength": 200
+        },
+        "translation": {
+          "type": "string",
+          "description": "Native translation",
+          "maxLength": 200
+        },
+        "phonetic": {
+          "type": "string",
+          "description": "IPA or phonetic transcription",
+          "maxLength": 200
+        },
+        "partOfSpeech": {
+          "type": "string",
+          "description": "Grammatical category",
+          "maxLength": 50
+        },
+        "exampleSentence": {
+          "type": "string",
+          "description": "Contextual usage sentence",
+          "maxLength": 500
+        },
+        "intervalDays": {
+          "type": "number",
+          "description": "Current SM-2 interval in days"
+        },
+        "repetitions": {
+          "type": "number",
+          "description": "Successful recall repetitions"
+        },
+        "easeFactor": {
+          "type": "number",
+          "description": "SM-2 ease factor"
+        },
+        "nextReviewDate": {
+          "type": "string",
+          "description": "ISO date for next review",
+          "maxLength": 50
+        }
+      },
+      "required": ["id", "userId", "languageId", "term", "translation", "intervalDays", "repetitions", "easeFactor", "nextReviewDate"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": {
+        "$ref": "UserProfile"
+      },
+      "description": "Stores user profile and learning progress metrics"
+    },
+    "/users/{userId}/srsCards/{cardId}": {
+      "schema": {
+        "$ref": "UserSrsCard"
+      },
+      "description": "Stores spaced repetition vocabulary cards for a learner"
+    }
+  }
+}

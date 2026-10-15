@@ -1,0 +1,10 @@
+{
+  "name": "Speak Dolphin",
+  "description": "An intelligent, adaptive multilingual language learning platform for children, teens, and adults featuring live AI conversation tutoring, pronunciation analysis, spaced repetition, and real-world immersion.",
+  "requestFramePermissions": [
+    "microphone"
+  ],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}

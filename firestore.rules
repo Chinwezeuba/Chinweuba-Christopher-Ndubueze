@@ -1,0 +1,89 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // --- Helper Functions ---
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    function isAdmin() {
+      return isSignedIn() && 
+        request.auth.token.email == "chinwezeuba@gmail.com";
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() > 0 && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function isValidUserProfile(data) {
+      return data.keys().hasAll(['id', 'name', 'email', 'role', 'ageGroup', 'targetLanguage', 'currentCefr', 'dailyGoalMinutes', 'streakDays', 'totalXp']) &&
+        data.id is string && data.id.size() <= 128 &&
+        data.name is string && data.name.size() > 0 && data.name.size() <= 100 &&
+        data.email is string && data.email.size() <= 150 &&
+        data.role in ['learner', 'parent', 'educator', 'admin'] &&
+        data.ageGroup in ['child_3_5', 'child_6_12', 'teen_13_17', 'adult_18_plus'] &&
+        data.targetLanguage is string && data.targetLanguage.size() <= 10 &&
+        data.currentCefr in ['A1', 'A2', 'B1', 'B2', 'C1', 'C2'] &&
+        data.dailyGoalMinutes is number && data.dailyGoalMinutes >= 0 && data.dailyGoalMinutes <= 180 &&
+        (!('dailyGoalXp' in data) || (data.dailyGoalXp is number && data.dailyGoalXp >= 0)) &&
+        (!('dailyXpEarnedToday' in data) || (data.dailyXpEarnedToday is number && data.dailyXpEarnedToday >= 0)) &&
+        data.streakDays is number && data.streakDays >= 0 &&
+        data.totalXp is number && data.totalXp >= 0;
+    }
+
+    function isValidUserSrsCard(data) {
+      return data.keys().hasAll(['id', 'userId', 'languageId', 'term', 'translation', 'intervalDays', 'repetitions', 'easeFactor', 'nextReviewDate']) &&
+        data.id is string && data.id.size() <= 128 &&
+        data.userId is string && data.userId.size() <= 128 &&
+        data.languageId is string && data.languageId.size() <= 10 &&
+        data.term is string && data.term.size() > 0 && data.term.size() <= 200 &&
+        data.translation is string && data.translation.size() > 0 && data.translation.size() <= 200 &&
+        data.intervalDays is number && data.intervalDays >= 0 &&
+        data.repetitions is number && data.repetitions >= 0 &&
+        data.easeFactor is number && data.easeFactor >= 1.0 &&
+        data.nextReviewDate is string && data.nextReviewDate.size() <= 50;
+    }
+
+    // --- Collections ---
+
+    // User Profile Document
+    match /users/{userId} {
+      allow get: if (isOwner(userId) || isAdmin()) && isValidId(userId);
+      allow list: if isAdmin();
+      allow create: if (isOwner(userId) || isAdmin()) &&
+        isValidId(userId) &&
+        isValidUserProfile(request.resource.data) &&
+        request.resource.data.id == userId;
+      allow update: if (isOwner(userId) || isAdmin()) &&
+        isValidId(userId) &&
+        isValidUserProfile(request.resource.data) &&
+        request.resource.data.id == resource.data.id;
+      allow delete: if isAdmin() && isValidId(userId);
+
+      // User SRS Flashcards subcollection
+      match /srsCards/{cardId} {
+        allow get: if (isOwner(userId) || isAdmin()) && isValidId(cardId);
+        allow list: if (isOwner(userId) || isAdmin());
+        allow create: if (isOwner(userId) || isAdmin()) &&
+          isValidId(cardId) &&
+          isValidUserSrsCard(request.resource.data) &&
+          request.resource.data.userId == userId;
+        allow update: if (isOwner(userId) || isAdmin()) &&
+          isValidId(cardId) &&
+          isValidUserSrsCard(request.resource.data) &&
+          request.resource.data.userId == resource.data.userId;
+        allow delete: if (isOwner(userId) || isAdmin()) && isValidId(cardId);
+      }
+    }
+
+    // Default Deny
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
